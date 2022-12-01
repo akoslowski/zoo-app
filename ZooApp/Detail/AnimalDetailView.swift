@@ -2,9 +2,18 @@ import SwiftUI
 import Combine
 
 final class AnimalDetailViewModel: ObservableObject {
+    enum UserInteraction: Hashable {
+        case animalRecommendationsButtonTapped
+    }
 
-    enum UserInterfaceEvent {
-        case animalsYouMayLikeTapped
+    enum SceneEvent: Hashable {
+        case sceneAppeared
+        case sceneDisappeared
+    }
+
+    enum UserInterfaceEvent: Hashable {
+        case sceneEvent(SceneEvent)
+        case userInteraction(UserInteraction)
     }
 
     @Published var state: State<Animal>
@@ -16,7 +25,8 @@ final class AnimalDetailViewModel: ObservableObject {
         self.state = .init(navigationPath: navigationPath, element: animal)
 
         eventSubject
-            .sink { print("DetailViewModel:received: \($0)") }
+            .print("## \(Self.self).\(#function)")
+            .sink { _ in /* do tracking maybe */}
             .store(in: &subscriptions)
 
         eventSubject
@@ -25,9 +35,23 @@ final class AnimalDetailViewModel: ObservableObject {
     }
 
     func handleEvent(_ event: UserInterfaceEvent) {
-        try? state.update { state in
-            state.navigationPath.append(event)
+        switch event {
+        case .sceneEvent(let sceneEvent):
+            handleSceneEvent(sceneEvent)
+
+        case .userInteraction(let interaction):
+            handleInteraction(interaction)
         }
+    }
+
+    func handleInteraction(_ interaction: UserInteraction) {
+        try? state.update { state in
+            state.navigationPath.append(interaction)
+        }
+    }
+
+    func handleSceneEvent(_ sceneEvent: SceneEvent) {
+        // nothing
     }
 }
 
@@ -35,31 +59,37 @@ struct AnimalDetailView: View {
 
     @StateObject var viewModel: AnimalDetailViewModel
 
+    var recommendationButton: some View {
+        Button {
+            viewModel.eventSubject.send(.userInteraction(.animalRecommendationsButtonTapped))
+        } label: {
+            Text("Other animals you may like")
+        }
+        .buttonStyle(.bordered)
+        .padding()
+    }
+
     var body: some View {
         ScrollView {
             VStack {
                 Text(viewModel.state.element.icon)
-                    .font(.system(size: 300))
+                    .font(.system(size: 250))
                     .padding()
                 
                 Spacer()
-                
-                Button {
-                    viewModel.eventSubject.send(.animalsYouMayLikeTapped)
-                } label: {
-                    Text("Other animals you may like")
-                }
-                .buttonStyle(.bordered)
-                .padding()
+
+                recommendationButton
             }
-            .navigationDestination(for: AnimalDetailViewModel.UserInterfaceEvent.self) {
+            .navigationDestination(for: AnimalDetailViewModel.UserInteraction.self) {
+                // FIXME: Get view from environment
                 Text(String(describing: $0))
             }
         }
+        .onAppear { viewModel.eventSubject.send(.sceneEvent(.sceneAppeared)) }
+        .onDisappear { viewModel.eventSubject.send(.sceneEvent(.sceneDisappeared)) }
         .navigationBarTitle(viewModel.state.element.name)
     }
 }
-
 
 struct AnimalDetailView_Previews: PreviewProvider {
     @ObservedObject private static var navigator: Navigator = .init()

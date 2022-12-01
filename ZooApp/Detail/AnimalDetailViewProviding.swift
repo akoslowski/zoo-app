@@ -40,7 +40,9 @@ extension AnimalDetailView {
             content
                 .navigationDestination(
                     for: Animal.self,
-                    destination: { animal in detailView(animal: animal, navigationPath: navigationPath) }
+                    destination: { animal in
+                        detailView(animal: animal, navigationPath: navigationPath)
+                    }
                 )
         }
     }

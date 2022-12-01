@@ -2,11 +2,20 @@ import SwiftUI
 import Combine
 
 final class AnimalListViewModel: ObservableObject {
-    enum UserInterfaceEvent {
-        case screenAppeared
-        case screenDisappeared
+
+    enum UserInteraction: Hashable {
         case animalViewTapped(Animal)
         case refreshButtonTapped
+    }
+
+    enum SceneEvent: Hashable {
+        case sceneAppeared
+        case sceneDisappeared
+    }
+
+    enum UserInterfaceEvent: Hashable {
+        case sceneEvent(SceneEvent)
+        case userInteraction(UserInteraction)
     }
 
     @Published var state: State<[Animal]>
@@ -21,7 +30,8 @@ final class AnimalListViewModel: ObservableObject {
         )
 
         eventSubject
-            .sink { print("ContentViewModel:received: \($0)") }
+            .print("# \(Self.self).\(#function)")
+            .sink { _ in /* do tracking maybe */}
             .store(in: &subscriptions)
 
         eventSubject
@@ -31,6 +41,16 @@ final class AnimalListViewModel: ObservableObject {
 
     func handleEvent(_ event: UserInterfaceEvent) {
         switch event {
+        case .sceneEvent(let sceneEvent):
+            handleSceneEvent(sceneEvent)
+
+        case .userInteraction(let interaction):
+            handleInteraction(interaction)
+        }
+    }
+
+    func handleInteraction(_ interaction: UserInteraction) {
+        switch interaction {
         case .animalViewTapped(let animal):
             try? state.update {
                 $0.navigationPath.append(animal)
@@ -41,13 +61,11 @@ final class AnimalListViewModel: ObservableObject {
                 $0.navigationPath = .init()
                 $0.element = Animal.makeRandomAnimals()
             }
-
-        case .screenAppeared:
-            break
-
-        case .screenDisappeared:
-            break
         }
+    }
+
+    func handleSceneEvent(_ sceneEvent: SceneEvent) {
+        // nothing
     }
 }
 
@@ -58,7 +76,7 @@ struct AnimalListView: View {
 
     var refreshButton: some View {
         Button {
-            viewModel.eventSubject.send(.refreshButtonTapped)
+            viewModel.eventSubject.send(.userInteraction(.refreshButtonTapped))
         } label: {
             Image(systemName: "arrow.clockwise")
         }
@@ -69,7 +87,7 @@ struct AnimalListView: View {
             LazyVStack {
                 ForEach(viewModel.state.element) { item in
                     AnimalView(animal: item) {
-                        viewModel.eventSubject.send(.animalViewTapped(item))
+                        viewModel.eventSubject.send(.userInteraction(.animalViewTapped(item)))
                     }
                 }
             }
@@ -77,8 +95,8 @@ struct AnimalListView: View {
                 navigationPath: $viewModel.state.navigationPath
             ))
         }
-        .onAppear { viewModel.eventSubject.send(.screenAppeared) }
-        .onDisappear { viewModel.eventSubject.send(.screenDisappeared) }
+        .onAppear { viewModel.eventSubject.send(.sceneEvent(.sceneAppeared)) }
+        .onDisappear { viewModel.eventSubject.send(.sceneEvent(.sceneDisappeared)) }
         .navigationViewStyle(StackNavigationViewStyle())
         .navigationTitle("Animals")
         .toolbar { refreshButton }
