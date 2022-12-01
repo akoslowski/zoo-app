@@ -7,14 +7,13 @@ final class DetailViewModel: ObservableObject {
         case animalsYouMayLikeTapped
     }
 
-    let animal: Animal
-    @Binding var navigationPath: NavigationPath
+    @Published var state: State<Animal>
+
     let eventSubject = PassthroughSubject<UserInterfaceEvent, Never>()
     private var subscriptions = Set<AnyCancellable>()
 
     init(animal: Animal, navigationPath: Binding<NavigationPath>) {
-        _navigationPath = navigationPath
-        self.animal = animal
+        self.state = .init(navigationPath: navigationPath, element: animal)
 
         eventSubject
             .sink { print("DetailViewModel:received: \($0)") }
@@ -26,7 +25,10 @@ final class DetailViewModel: ObservableObject {
     }
 
     func handleEvent(_ event: UserInterfaceEvent) {
-        navigationPath.append(event)
+        try? state.update { state in
+            state.navigationPath.append(event)
+            print(state.navigationPath)
+        }
     }
 }
 
@@ -35,35 +37,42 @@ struct DetailView: View {
     @StateObject var viewModel: DetailViewModel
 
     var body: some View {
-        VStack {
-            Text(viewModel.animal.icon)
-                .font(.system(size: 200))
+        ScrollView {
+            VStack {
+                Text(viewModel.state.element.icon)
+                    .font(.system(size: 300))
+                    .padding()
+                
+                Spacer()
+                
+                Button {
+                    viewModel.eventSubject.send(.animalsYouMayLikeTapped)
+                } label: {
+                    Text("Other animals you may like")
+                }
+                .buttonStyle(.bordered)
                 .padding()
-
-            Spacer()
-
-            Button {
-                viewModel.eventSubject.send(.animalsYouMayLikeTapped)
-            } label: {
-                Text("Other animals you may like")
             }
-            .buttonStyle(.bordered)
-            .padding()
+            .navigationDestination(for: DetailViewModel.UserInterfaceEvent.self) {
+                Text(String(describing: $0))
+            }
         }
-        .navigationBarTitle(viewModel.animal.name)
-        .navigationDestination(for: DetailViewModel.UserInterfaceEvent.self) {
-            Text(String(describing: $0))
-        }
+        .navigationBarTitle(viewModel.state.element.name)
     }
 }
 
 
 struct DetailView_Previews: PreviewProvider {
-    @State private static var navigationPath: NavigationPath = .init()
+    @ObservedObject private static var navigator: Navigator = .init()
 
     static var previews: some View {
-        NavigationStack(path: $navigationPath) {
-            DetailView(viewModel: .init(animal: .makeRandomAnimal(), navigationPath: $navigationPath))
+        TabView {
+            NavigationStack(path: $navigator.navigationPath) {
+                DetailView(viewModel: .init(animal: .makeRandomAnimal(), navigationPath: $navigator.navigationPath))
+            }
+            .tabItem {
+                Label { Text("Detail") } icon: { Image(systemName: "circle") }
+            }
         }
     }
 }

@@ -7,14 +7,16 @@ final class ContentViewModel: ObservableObject {
         case refreshTapped
     }
 
-    @Binding var navigationPath: NavigationPath
-    @Published var items = Animal.makeRandomAnimals()
+    @Published var state: State<[Animal]>
 
     let eventSubject = PassthroughSubject<UserInterfaceEvent, Never>()
     private var subscriptions = Set<AnyCancellable>()
     
     init(navigationPath: Binding<NavigationPath>) {
-        _navigationPath = navigationPath
+        state = .init(
+            navigationPath: navigationPath,
+            element: Animal.makeRandomAnimals()
+        )
 
         eventSubject
             .sink { print("ContentViewModel:received: \($0)") }
@@ -27,23 +29,31 @@ final class ContentViewModel: ObservableObject {
 
     func handleEvent(_ event: UserInterfaceEvent) {
         switch event {
-        case .itemTapped(let item):
-            navigationPath.append(item)
+        case .itemTapped(let animal):
+            try? state.update {
+                $0.navigationPath.append(animal)
+            }
+
         case .refreshTapped:
-            items = Animal.makeRandomAnimals()
+            try? state.update {
+                $0.navigationPath = .init()
+                $0.element = Animal.makeRandomAnimals()
+            }
         }
     }
 }
 
 struct ContentView: View {
 
+    // When using an @ObservedObject here, when going back the view is re-rendered and the viewModel recreated.
+    // @ObservedObject var viewModel: ContentViewModel
     @StateObject var viewModel: ContentViewModel
     @Environment(\.detailView) var detailView
 
     var body: some View {
         ScrollView {
             LazyVStack {
-                ForEach(viewModel.items) { item in
+                ForEach(viewModel.state.element) { item in
                     AnimalView(animal: item)
                         .onTapGesture {
                             viewModel.eventSubject.send(.itemTapped(item))
@@ -52,11 +62,11 @@ struct ContentView: View {
             }
             .navigationDestination(
                 for: Animal.self,
-                destination: { detailView(animal: $0, navigationPath: $viewModel.navigationPath) }
+                destination: { detailView(animal: $0, navigationPath: $viewModel.state.navigationPath) }
             )
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .navigationTitle("Home")
+        .navigationTitle("Animals")
         .toolbar {
             Button {
                 viewModel.eventSubject.send(.refreshTapped)
@@ -68,10 +78,8 @@ struct ContentView: View {
     }
 }
 
-// FIXME: Navigation in previews is broken. It works when running the app in simulator though.
 struct ContentView_Previews: PreviewProvider {
-    @StateObject private static var navigator: Navigator = .init()
-    @State private static var navigationPath: NavigationPath = .init()
+    @ObservedObject private static var navigator: Navigator = .init()
 
     static var previews: some View {
         TabView {
