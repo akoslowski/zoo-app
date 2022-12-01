@@ -9,11 +9,16 @@ final class AnimalDetailViewModel: ObservableObject {
     enum SceneEvent: Hashable {
         case sceneAppeared
         case sceneDisappeared
+        case sceneDestroyed
     }
 
     enum UserInterfaceEvent: Hashable {
         case sceneEvent(SceneEvent)
         case userInteraction(UserInteraction)
+    }
+
+    deinit {
+        eventSubject.send(.sceneEvent(.sceneDestroyed))
     }
 
     @Published var state: State<Animal>
