@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AnimalView: View {
     let animal: Animal
+    let action: () -> Void
 
     var body: some View {
         Label(title: {
@@ -10,11 +11,12 @@ struct AnimalView: View {
             Text(animal.icon).font(.system(size: 70))
         })
         .padding(.vertical)
+        .onTapGesture(perform: action)
     }
 }
 
 struct AnimalView_Previews: PreviewProvider {
     static var previews: some View {
-        AnimalView(animal: .makeRandomAnimal())
+        AnimalView(animal: .makeRandomAnimal()) {}
     }
 }

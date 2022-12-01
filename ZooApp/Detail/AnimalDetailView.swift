@@ -1,7 +1,7 @@
 import SwiftUI
 import Combine
 
-final class DetailViewModel: ObservableObject {
+final class AnimalDetailViewModel: ObservableObject {
 
     enum UserInterfaceEvent {
         case animalsYouMayLikeTapped
@@ -31,9 +31,9 @@ final class DetailViewModel: ObservableObject {
     }
 }
 
-struct DetailView: View {
+struct AnimalDetailView: View {
 
-    @StateObject var viewModel: DetailViewModel
+    @StateObject var viewModel: AnimalDetailViewModel
 
     var body: some View {
         ScrollView {
@@ -52,7 +52,7 @@ struct DetailView: View {
                 .buttonStyle(.bordered)
                 .padding()
             }
-            .navigationDestination(for: DetailViewModel.UserInterfaceEvent.self) {
+            .navigationDestination(for: AnimalDetailViewModel.UserInterfaceEvent.self) {
                 Text(String(describing: $0))
             }
         }
@@ -61,13 +61,13 @@ struct DetailView: View {
 }
 
 
-struct DetailView_Previews: PreviewProvider {
+struct AnimalDetailView_Previews: PreviewProvider {
     @ObservedObject private static var navigator: Navigator = .init()
 
     static var previews: some View {
         TabView {
             NavigationStack(path: $navigator.navigationPath) {
-                DetailView(viewModel: .init(animal: .makeRandomAnimal(), navigationPath: $navigator.navigationPath))
+                AnimalDetailView(viewModel: .init(animal: .makeRandomAnimal(), navigationPath: $navigator.navigationPath))
             }
             .tabItem {
                 Label { Text("Detail") } icon: { Image(systemName: "circle") }

@@ -9,8 +9,8 @@ struct ZooApp: App {
         WindowGroup {
             TabView {
                 NavigationStack(path: $rootNavigator.navigationPath) {
-                    ContentView(viewModel: .init(navigationPath: $rootNavigator.navigationPath))
-                        .environment(\.detailView, DetailViewProvider(dependencies: [42,1]))
+                    AnimalListView(viewModel: .init(navigationPath: $rootNavigator.navigationPath))
+                        .environment(\.detailView, AnimalDetailView.Builder())
                 }
                 .tabItem {
                     Label { Text("Animals") } icon: { Image(systemName: "circle") }
