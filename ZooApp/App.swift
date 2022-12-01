@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct NavigoApp: App {
+struct ZooApp: App {
 
     @StateObject var rootNavigator = Navigator()
 
