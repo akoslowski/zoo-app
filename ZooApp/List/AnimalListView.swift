@@ -26,7 +26,7 @@ final class AnimalListViewModel: ObservableObject {
     init(navigationPath: Binding<NavigationPath>) {
         state = .init(
             navigationPath: navigationPath,
-            element: Animal.makeRandomAnimals()
+            element: []
         )
 
         eventSubject
@@ -65,7 +65,15 @@ final class AnimalListViewModel: ObservableObject {
     }
 
     func handleSceneEvent(_ sceneEvent: SceneEvent) {
-        // nothing
+        switch sceneEvent {
+        case .sceneAppeared:
+            try? state.update {
+                $0.element = Animal.makeRandomAnimals()
+            }
+
+        case .sceneDisappeared:
+            break
+        }
     }
 }
 
