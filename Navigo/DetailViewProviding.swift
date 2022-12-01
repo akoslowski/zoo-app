@@ -4,7 +4,7 @@ import SwiftUI
 struct DetailViewProvider {
     let dependencies: [Int]
 
-    func callAsFunction(animal: Animal, navigationPath: NavigationPath?) -> some View {
+    func callAsFunction(animal: Animal, navigationPath: Binding<NavigationPath>) -> some View {
         DetailView(viewModel: .init(animal: animal, navigationPath: navigationPath))
     }
 

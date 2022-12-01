@@ -7,16 +7,14 @@ final class ContentViewModel: ObservableObject {
         case refreshTapped
     }
 
-    @Published var navigationPath: NavigationPath = .init() // [Animal] = []
+    @Binding var navigationPath: NavigationPath
     @Published var items = Animal.makeRandomAnimals()
 
     let eventSubject = PassthroughSubject<UserInterfaceEvent, Never>()
     private var subscriptions = Set<AnyCancellable>()
     
-    init() {
-        $navigationPath
-            .sink { print("ContentViewModel:$navigationPath: \($0)") }
-            .store(in: &subscriptions)
+    init(navigationPath: Binding<NavigationPath>) {
+        _navigationPath = navigationPath
 
         eventSubject
             .sink { print("ContentViewModel:received: \($0)") }
@@ -37,47 +35,52 @@ final class ContentViewModel: ObservableObject {
     }
 }
 
-
 struct ContentView: View {
 
-    @ObservedObject var viewModel: ContentViewModel = .init()
-
+    @StateObject var viewModel: ContentViewModel
     @Environment(\.detailView) var detailView
 
     var body: some View {
-        NavigationStack(path: $viewModel.navigationPath) {
-            ScrollView {
-                LazyVStack {
-                    ForEach(viewModel.items) { item in
-                        Text(item.description)
-                            .font(.largeTitle)
-                            .padding(.vertical)
-                            .onTapGesture {
-                                viewModel.eventSubject.send(.itemTapped(item))
-                            }
-                    }
+        ScrollView {
+            LazyVStack {
+                ForEach(viewModel.items) { item in
+                    AnimalView(animal: item)
+                        .onTapGesture {
+                            viewModel.eventSubject.send(.itemTapped(item))
+                        }
                 }
-                .navigationDestination(
-                    for: Animal.self,
-                    destination: { [weak viewModel] in detailView(animal: $0, navigationPath: viewModel?.navigationPath) }
-                )
             }
-            .navigationTitle("Home")
-            .toolbar {
-                Button {
-                    viewModel.eventSubject.send(.refreshTapped)
-                } label: {
-                    Image(systemName: "goforward")
-                }
-                .toolbar(.automatic, for: .navigationBar)
-            }
+            .navigationDestination(
+                for: Animal.self,
+                destination: { detailView(animal: $0, navigationPath: $viewModel.navigationPath) }
+            )
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .navigationTitle("Home")
+        .toolbar {
+            Button {
+                viewModel.eventSubject.send(.refreshTapped)
+            } label: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .toolbar(.automatic, for: .navigationBar)
+        }
     }
 }
 
+// FIXME: Navigation in previews is broken. It works when running the app in simulator though.
 struct ContentView_Previews: PreviewProvider {
+    @StateObject private static var navigator: Navigator = .init()
+    @State private static var navigationPath: NavigationPath = .init()
+
     static var previews: some View {
-        ContentView()
+        TabView {
+            NavigationStack(path: $navigator.navigationPath) {
+                ContentView(viewModel: .init(navigationPath: $navigator.navigationPath))
+            }
+            .tabItem {
+                Label { Text("Animals") } icon: { Image(systemName: "circle") }
+            }
+        }
     }
 }
