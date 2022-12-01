@@ -27,7 +27,6 @@ final class DetailViewModel: ObservableObject {
     func handleEvent(_ event: UserInterfaceEvent) {
         try? state.update { state in
             state.navigationPath.append(event)
-            print(state.navigationPath)
         }
     }
 }
