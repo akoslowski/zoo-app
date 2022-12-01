@@ -10,7 +10,8 @@ struct AnimalView: View {
         }, icon: {
             Text(animal.icon).font(.system(size: 70))
         })
-        .padding(.vertical)
+        .padding()
+        .contentShape(Rectangle())
         .onTapGesture(perform: action)
     }
 }
