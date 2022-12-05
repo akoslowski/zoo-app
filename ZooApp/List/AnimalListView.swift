@@ -18,7 +18,7 @@ final class AnimalListViewModel: ObservableObject {
         case userInteraction(UserInteraction)
     }
 
-    @Published var state: State<[Animal]>
+    @Published var state: SceneState<[Animal]>
 
     let eventSubject = PassthroughSubject<UserInterfaceEvent, Never>()
     private var subscriptions = Set<AnyCancellable>()
@@ -26,7 +26,7 @@ final class AnimalListViewModel: ObservableObject {
     init(navigationPath: Binding<NavigationPath>) {
         state = .init(
             navigationPath: navigationPath,
-            element: []
+            value: []
         )
 
         eventSubject
@@ -59,7 +59,7 @@ final class AnimalListViewModel: ObservableObject {
         case .refreshButtonTapped:
             try? state.update {
                 $0.navigationPath = .init()
-                $0.element = Animal.makeRandomAnimals()
+                $0.value = Animal.makeRandomAnimals()
             }
         }
     }
@@ -68,7 +68,7 @@ final class AnimalListViewModel: ObservableObject {
         switch sceneEvent {
         case .sceneAppeared:
             try? state.update {
-                $0.element = Animal.makeRandomAnimals()
+                $0.value = Animal.makeRandomAnimals()
             }
 
         case .sceneDisappeared:
@@ -86,22 +86,22 @@ struct AnimalListView: View {
         Button {
             viewModel.eventSubject.send(.userInteraction(.refreshButtonTapped))
         } label: {
-            Image(systemName: "arrow.clockwise")
+            Image(systemName: "arrow.clockwise.circle")
         }
     }
 
     var body: some View {
         ScrollView {
             LazyVStack {
-                ForEach(viewModel.state.element) { item in
+                ForEach(viewModel.state.value) { item in
                     AnimalView(animal: item) {
                         viewModel.eventSubject.send(.userInteraction(.animalViewTapped(item)))
                     }
                 }
             }
-            .modifier(AnimalDetailView.NavigationDestination(
+            .addAnimalDetailViewNavigationDestination(
                 navigationPath: $viewModel.state.navigationPath
-            ))
+            )
         }
         .onAppear { viewModel.eventSubject.send(.sceneEvent(.sceneAppeared)) }
         .onDisappear { viewModel.eventSubject.send(.sceneEvent(.sceneDisappeared)) }
@@ -117,7 +117,11 @@ struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         TabView {
             NavigationStack(path: $navigator.navigationPath) {
-                AnimalListView(viewModel: .init(navigationPath: $navigator.navigationPath))
+                AnimalListView(
+                    viewModel: .init(
+                        navigationPath: $navigator.navigationPath
+                    )
+                )
             }
             .tabItem {
                 Label { Text("Animals") } icon: { Image(systemName: "circle") }

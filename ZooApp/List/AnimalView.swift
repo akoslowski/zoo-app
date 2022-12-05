@@ -8,7 +8,7 @@ struct AnimalView: View {
         Label(title: {
             Text(animal.name).font(.largeTitle)
         }, icon: {
-            Text(animal.icon).font(.system(size: 70))
+            Text(animal.icon).font(.title)
         })
         .padding()
         .contentShape(Rectangle())

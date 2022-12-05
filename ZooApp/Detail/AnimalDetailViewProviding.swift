@@ -30,6 +30,21 @@ extension EnvironmentValues {
 }
 
 extension AnimalDetailView {
+    /**
+     Example usage:
+
+     ```
+     .modifier(
+        AnimalDetailView.NavigationDestination(
+            navigationPath: $viewModel.state.navigationPath
+        )
+     )
+     ```
+
+     - Notes:
+     - How does the interface communicate which type is required to be appended to the ``navigationPath`` for this modifier to take effect?
+     - The type has to be known to the caller to be able to append it to the ``navigationPath``.
+     */
     struct NavigationDestination: ViewModifier {
         /// Function from the environment to create an ``AnimalDetailView``
         @Environment(\.detailView) var detailView
@@ -45,5 +60,20 @@ extension AnimalDetailView {
                     }
                 )
         }
+    }
+}
+
+extension View {
+    /**
+     Example usage:
+
+     ```
+     .addAnimalDetailViewNavigationDestination(
+        navigationPath: $viewModel.state.navigationPath
+     )
+     ```
+     */
+    func addAnimalDetailViewNavigationDestination(navigationPath: Binding<NavigationPath>) -> some View {
+        modifier(AnimalDetailView.NavigationDestination(navigationPath: navigationPath))
     }
 }

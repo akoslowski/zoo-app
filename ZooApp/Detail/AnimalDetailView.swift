@@ -21,13 +21,13 @@ final class AnimalDetailViewModel: ObservableObject {
         eventSubject.send(.sceneEvent(.sceneDestroyed))
     }
 
-    @Published var state: State<Animal>
+    @Published var state: SceneState<Animal>
 
     let eventSubject = PassthroughSubject<UserInterfaceEvent, Never>()
     private var subscriptions = Set<AnyCancellable>()
 
     init(animal: Animal, navigationPath: Binding<NavigationPath>) {
-        self.state = .init(navigationPath: navigationPath, element: animal)
+        self.state = .init(navigationPath: navigationPath, value: animal)
 
         eventSubject
             .print("## \(Self.self).\(#function)")
@@ -50,8 +50,9 @@ final class AnimalDetailViewModel: ObservableObject {
     }
 
     func handleInteraction(_ interaction: UserInteraction) {
+        guard case .animalRecommendationsButtonTapped = interaction else { return }
         try? state.update { state in
-            state.navigationPath.append(interaction)
+            state.navigationPath.append(RecommendationListView.NavigationDestination.Path())
         }
     }
 
@@ -77,7 +78,7 @@ struct AnimalDetailView: View {
     var body: some View {
         ScrollView {
             VStack {
-                Text(viewModel.state.element.icon)
+                Text(viewModel.state.value.icon)
                     .font(.system(size: 250))
                     .padding()
                 
@@ -85,14 +86,13 @@ struct AnimalDetailView: View {
 
                 recommendationButton
             }
-            .navigationDestination(for: AnimalDetailViewModel.UserInteraction.self) {
-                // FIXME: Get view from environment
-                Text(String(describing: $0))
-            }
+            .addRecommendationListViewNavigationDestination(
+                navigationPath: $viewModel.state.navigationPath
+            )
         }
         .onAppear { viewModel.eventSubject.send(.sceneEvent(.sceneAppeared)) }
         .onDisappear { viewModel.eventSubject.send(.sceneEvent(.sceneDisappeared)) }
-        .navigationBarTitle(viewModel.state.element.name)
+        .navigationBarTitle(viewModel.state.value.name)
     }
 }
 
