@@ -1,7 +1,7 @@
 import Foundation
 import CryptoKit
 
-struct Animal: Identifiable, Hashable, CustomStringConvertible {
+struct Animal: Identifiable, Hashable, Equatable, CustomStringConvertible {
     let id: String
     let icon: String
     let name: String

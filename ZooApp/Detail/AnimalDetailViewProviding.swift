@@ -5,7 +5,7 @@ extension AnimalDetailView {
         // Note:
         // Dependencies can be stored here in order to create an `AnimalDetailView`
 
-        func callAsFunction(animal: Animal, navigationPath: Binding<NavigationPath>) -> some View {
+        @MainActor func callAsFunction(animal: Animal, navigationPath: Binding<NavigationPath>) -> some View {
             AnimalDetailView(viewModel: .init(animal: animal, navigationPath: navigationPath))
         }
 

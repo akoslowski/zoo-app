@@ -5,7 +5,7 @@ extension RecommendationListView {
         // Note:
         // Dependencies can be stored here in order to create an `AnimalDetailView`
 
-        func callAsFunction(navigationPath: Binding<NavigationPath>) -> some View {
+        @MainActor func callAsFunction(navigationPath: Binding<NavigationPath>) -> some View {
             RecommendationListView()
         }
 
