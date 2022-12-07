@@ -23,7 +23,7 @@ Simple things should stay simple. If you want to use a `NavigationLink` inside a
 
 ### Assume multiple actions per user interaction / event
 
-The standard navigation in SwiftUI with `NavigationLink` and `NavigationStack` assumes exaclty one action, namely **navigating**; taking the user from one point to another. In `XING.app` we usually want at least two actions, navigating and **tracking**.
+The standard navigation in SwiftUI with `NavigationLink` and `NavigationStack` assumes exaclty one action, namely **navigating**; taking the user from one point to another. In our sceanrio we usually want at least two actions, navigating and **tracking**.
 
 In the Armstrong era we iterated on using publishers for user interactions and other events. Usually a view model defines which events are available and subscribers will take care of navigation and tracking.
 
