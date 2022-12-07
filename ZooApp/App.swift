@@ -12,6 +12,7 @@ struct ZooApp: App {
                     AnimalListView(viewModel: .init(navigationPath: $rootNavigator.navigationPath))
                         .environment(\.detailView, AnimalDetailView.Builder())
                 }
+                .environmentObject(rootNavigator)
                 .tabItem {
                     Label { Text("Animals") } icon: { Image(systemName: "circle") }
                 }
