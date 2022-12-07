@@ -72,8 +72,10 @@ final class AnimalListViewModel: ObservableObject {
     func handleSceneEvent(_ sceneEvent: SceneEvent) {
         switch sceneEvent {
         case .sceneAppeared:
-            state.update {
-                $0.value = Animal.makeRandomAnimals()
+            if state.value.isEmpty {
+                state.update {
+                    $0.value = Animal.makeRandomAnimals()
+                }
             }
 
         case .sceneDisappeared:
